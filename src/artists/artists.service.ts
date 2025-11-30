@@ -2,10 +2,17 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { Artist } from "./artistsInterface";
 import { v4, validate } from "uuid";
 import { CreateArtistDto, UpdateArtistDto } from "./dto/artists.dto";
+import { AlbumService } from "src/albums/albums.service";
+import { TracksService } from "src/tracks/tracks.service";
 
 @Injectable()
 export class ArtistService {
   private artists: Artist[] = [];
+
+  constructor(
+    private readonly albumService: AlbumService,
+    private readonly trackService: TracksService
+  ) {}
 
   private validateUUID(id: string) {
     if(!validate(id)) {
@@ -75,5 +82,8 @@ export class ArtistService {
     }
 
     this.artists.splice(foundArtistIndex, 1);
+
+    this.albumService.deleteArtistFromAlbums(id);
+    this.trackService.deleteArtistFromTracks(id);
   }
 }
