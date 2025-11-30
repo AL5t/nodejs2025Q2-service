@@ -1,35 +1,45 @@
-import { v4, validate } from "uuid";
-import { CreateUserDto, UpdatePasswordDto } from "./dto/users.dto";
-import { User } from "./userInterface";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { v4, validate } from 'uuid';
+import { CreateUserDto, UpdatePasswordDto } from './dto/users.dto';
+import { User } from './userInterface';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 @Injectable()
 export class UserService {
   private users: User[] = [];
 
   private validateUUID(id: string) {
-    if(!validate(id)) {
+    if (!validate(id)) {
       throw new BadRequestException('Invalid user id (not UUID)');
     }
   }
 
   getAllUsers(): Omit<User, 'password'>[] {
-    return this.users.map(({password, ...otherParams}) => otherParams);
+    return this.users.map(({ password, ...otherParams }) => otherParams);
   }
 
   getUserById(id: string): Omit<User, 'password'> {
     this.validateUUID(id);
-    const foundUser = this.users.find(user => user.id === id);
-    if(!foundUser) {
+    const foundUser = this.users.find((user) => user.id === id);
+    if (!foundUser) {
       throw new NotFoundException('User not found');
     }
 
-    const {password, ...userWithoutPas} = foundUser;
+    const { password, ...userWithoutPas } = foundUser;
     return userWithoutPas;
   }
 
   createUser(dto: CreateUserDto): Omit<User, 'password'> {
-    if(!dto.login || !dto.password || typeof dto.login !== 'string' || typeof dto.password !== 'string') {
+    if (
+      !dto.login ||
+      !dto.password ||
+      typeof dto.login !== 'string' ||
+      typeof dto.password !== 'string'
+    ) {
       throw new BadRequestException('Required login or password missing');
     }
 
@@ -45,20 +55,20 @@ export class UserService {
     };
 
     this.users.push(newUser);
-    const {password, ...newUserWithoutPas} = newUser;
+    const { password, ...newUserWithoutPas } = newUser;
     return newUserWithoutPas;
   }
 
   updateUser(id: string, dto: UpdatePasswordDto): Omit<User, 'password'> {
     this.validateUUID(id);
 
-    const foundUser = this.users.find(user => user.id === id);
+    const foundUser = this.users.find((user) => user.id === id);
 
-    if(!foundUser) {
+    if (!foundUser) {
       throw new NotFoundException('User not found');
     }
 
-    if(foundUser.password !== dto.oldPassword) {
+    if (foundUser.password !== dto.oldPassword) {
       throw new ForbiddenException('Old password does not match');
     }
 
@@ -66,15 +76,15 @@ export class UserService {
     foundUser.version++;
     foundUser.updatedAt = Date.now();
 
-    const {password, ...updatedUserWithoutPas} = foundUser;
+    const { password, ...updatedUserWithoutPas } = foundUser;
     return updatedUserWithoutPas;
   }
 
   deleteUser(id: string) {
     this.validateUUID(id);
 
-    const deletedUserIndex = this.users.findIndex(user => user.id === id);
-    if(deletedUserIndex === -1) {
+    const deletedUserIndex = this.users.findIndex((user) => user.id === id);
+    if (deletedUserIndex === -1) {
       throw new NotFoundException('User not found');
     }
     this.users.splice(deletedUserIndex, 1);

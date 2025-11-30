@@ -1,6 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from "@nestjs/common";
-import { ArtistService } from "./artists.service";
-import { CreateArtistDto, UpdateArtistDto } from "./dto/artists.dto";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { ArtistService } from './artists.service';
+import { CreateArtistDto, UpdateArtistDto } from './dto/artists.dto';
 
 @Controller('artist')
 export class ArtistController {

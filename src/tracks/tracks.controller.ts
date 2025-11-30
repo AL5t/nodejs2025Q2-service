@@ -1,6 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from "@nestjs/common";
-import { TracksService } from "./tracks.service";
-import { CreateTrackDto, UpdateTrackDto } from "./dto/tracks.dto";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { TracksService } from './tracks.service';
+import { CreateTrackDto, UpdateTrackDto } from './dto/tracks.dto';
 
 @Controller('track')
 export class TrackController {
