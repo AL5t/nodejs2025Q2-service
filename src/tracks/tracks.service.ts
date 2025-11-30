@@ -9,7 +9,7 @@ export class TracksService {
 
   private validateUUID(id: string) {
     if(!validate(id)) {
-      throw new BadRequestException('Invalid user id (not UUID)');
+      throw new BadRequestException('Invalid track id (not UUID)');
     }
   }
 
