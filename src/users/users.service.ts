@@ -19,7 +19,13 @@ export class UserService {
   }
 
   getAllUsers(): Omit<User, 'password'>[] {
-    return this.users.map(({ password, ...otherParams }) => otherParams);
+    return this.users.map(({ id, login, version, createdAt, updatedAt }) => ({
+      id,
+      login,
+      version,
+      createdAt,
+      updatedAt,
+    }));
   }
 
   getUserById(id: string): Omit<User, 'password'> {
@@ -29,8 +35,13 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    const { password, ...userWithoutPas } = foundUser;
-    return userWithoutPas;
+    return {
+      id: foundUser.id,
+      login: foundUser.login,
+      version: foundUser.version,
+      createdAt: foundUser.createdAt,
+      updatedAt: foundUser.updatedAt,
+    };
   }
 
   createUser(dto: CreateUserDto): Omit<User, 'password'> {
@@ -55,8 +66,14 @@ export class UserService {
     };
 
     this.users.push(newUser);
-    const { password, ...newUserWithoutPas } = newUser;
-    return newUserWithoutPas;
+
+    return {
+      id: newUser.id,
+      login: newUser.login,
+      version: newUser.version,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt,
+    };
   }
 
   updateUser(id: string, dto: UpdatePasswordDto): Omit<User, 'password'> {
@@ -76,8 +93,13 @@ export class UserService {
     foundUser.version++;
     foundUser.updatedAt = Date.now();
 
-    const { password, ...updatedUserWithoutPas } = foundUser;
-    return updatedUserWithoutPas;
+    return {
+      id: foundUser.id,
+      login: foundUser.login,
+      version: foundUser.version,
+      createdAt: foundUser.createdAt,
+      updatedAt: foundUser.updatedAt,
+    };
   }
 
   deleteUser(id: string) {
