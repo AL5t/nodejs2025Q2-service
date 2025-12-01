@@ -11,6 +11,12 @@
 git clone https://github.com/AL5t/nodejs2025Q2-service
 ```
 
+## Go to directory
+
+```
+cd nodejs2025Q2-service
+```
+
 ## Installing NPM modules
 
 ```
