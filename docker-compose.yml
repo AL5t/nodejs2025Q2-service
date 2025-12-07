@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: oals/home-library-service-image
+    container_name: home_library_service_cont
+    restart: unless-stopped
+    envirnment:
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    networks:
+      - home_network
+
+  volumes:
+    db_data:
+      name: home_library_service_data
+
+  networks:
+    home_network:
+      driver: bridge
+      name: hls_network
+
