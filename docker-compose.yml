@@ -7,19 +7,43 @@ services:
     image: oals/home-library-service-image
     container_name: home_library_service_cont
     restart: unless-stopped
-    envirnment:
-      PORT: 4000
+    depends_on:
+      - db
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - logs:/app/logs
     ports:
-      - "4000:4000"
+      - "${PORT}:${PORT}"
     networks:
       - home_network
 
-  volumes:
-    db_data:
-      name: home_library_service_data
 
-  networks:
-    home_network:
-      driver: bridge
-      name: hls_network
+  db:
+    image: postgres:18-alpine
+    container_name: home_library_service_db
+    restart: unless-stopped
+    environment: 
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_hls_data: /var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - home_network
+
+volumes:
+  db_data:
+    name: home_library_service_data
+  db_logs:
+    name: home_library_service_db_logs
+  logs:
+    name: home_library_service_logs
+
+networks:
+  home_network:
+    driver: bridge
+    name: hls_network
 
