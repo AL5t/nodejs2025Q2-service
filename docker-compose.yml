@@ -1,0 +1,41 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - logs:/app/logs
+    networks:
+      - hls_network
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    image: postgres:18-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - hls_network
+
+volumes:
+  db_data:
+    name: home_library_service_data
+  logs:
+    name: home_library_service_logs
+
+networks:
+  hls_network:
+    driver: bridge
+
