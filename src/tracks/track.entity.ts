@@ -13,6 +13,12 @@ export class Track {
   @Column('int')
   duration: number;
 
+  @Column({ type: 'uuid', nullable: true })
+  artistId: string | null;
+  
+  @Column({ type: 'uuid', nullable: true })
+  albumId: string | null;
+
   @ManyToOne(() => Artist, (artist) => artist.tracks, {
     nullable: true,
     onDelete: 'SET NULL',

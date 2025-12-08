@@ -17,12 +17,6 @@ git clone https://github.com/AL5t/nodejs2025Q2-service
 cd nodejs2025Q2-service
 ```
 
-## Installing NPM modules
-
-```
-npm install
-```
-
 ## Adding .env file
 
 ```
@@ -32,12 +26,11 @@ cp .env.example ./.env
 ## Running application
 
 ```
-npm start
+docker compose build --no-cache
 ```
-
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+```
+docker compose up -d
+```
 
 ## Testing
 
@@ -46,7 +39,7 @@ After application running open new terminal and enter:
 To run all tests without authorization
 
 ```
-npm run test
+docker exec -it nodejs2025q2-service-app-1 npm run test
 ```
 
 ### Auto-fix and format

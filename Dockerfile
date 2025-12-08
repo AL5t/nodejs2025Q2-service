@@ -13,10 +13,13 @@ FROM node:25-alpine AS runner
 WORKDIR /app
 
 COPY --from=builder /app ./
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 4000
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s \
   CMD wget -q -O- --timeout=2 http://localhost:4000/ || exit 1
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["npm", "run", "start:prod"]

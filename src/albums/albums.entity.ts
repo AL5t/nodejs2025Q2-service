@@ -21,6 +21,9 @@ export class Album {
   @Column('int')
   year: number;
 
+  @Column({ type: 'uuid', nullable: true })
+  artistId: string | null;
+
   @ManyToOne(() => Artist, (artist) => artist.albums, {
     nullable: true,
     onDelete: 'SET NULL',

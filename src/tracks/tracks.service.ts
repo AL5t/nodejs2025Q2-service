@@ -116,7 +116,7 @@ export class TracksService {
   async deleteArtistFromTracks(artistId: string) {
     await this.trackRepo
       .createQueryBuilder()
-      .update()
+      .update(Track)
       .set({ artist: null })
       .where('artistId = :artistId', { artistId })
       .execute();
@@ -125,7 +125,7 @@ export class TracksService {
   async deleteAlbumFromTracks(albumId: string) {
     await this.trackRepo
       .createQueryBuilder()
-      .update()
+      .update(Track)
       .set({ album: null })
       .where('albumId = :albumId', { albumId })
       .execute();

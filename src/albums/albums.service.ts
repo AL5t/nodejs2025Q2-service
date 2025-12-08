@@ -106,7 +106,7 @@ export class AlbumService {
   async deleteArtistFromAlbums(artistId: string) {
     await this.albumRepo
       .createQueryBuilder()
-      .update()
+      .update(Album)
       .set({ artist: null })
       .where('artistId = :artistId', { artistId })
       .execute();

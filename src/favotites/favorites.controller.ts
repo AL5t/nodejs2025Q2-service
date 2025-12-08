@@ -11,6 +11,7 @@ export class FavoritesController {
   }
 
   @Post('/track/:id')
+  @HttpCode(201)
   addTrackToFavorites(@Param('id') id: string) {
     return this.favoritesService.addTrackToFavorites(id);
   }
@@ -22,6 +23,7 @@ export class FavoritesController {
   }
 
   @Post('/album/:id')
+  @HttpCode(201)
   addAlbumToFavorites(@Param('id') id: string) {
     return this.favoritesService.addAlbumToFavorites(id);
   }
@@ -33,6 +35,7 @@ export class FavoritesController {
   }
 
   @Post('/artist/:id')
+  @HttpCode(201)
   addArtistToFavorites(@Param('id') id: string) {
     return this.favoritesService.addArtistToFavorites(id);
   }

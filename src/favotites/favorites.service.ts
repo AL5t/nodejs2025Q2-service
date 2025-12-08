@@ -31,11 +31,25 @@ export class FavoritesService {
     }
   }
 
-  async getAllFavorites() {
-    const favs = await this.favRepo.find({
+  async getAllFavorites(): Promise<Favorites> {
+    let favs = await this.favRepo.findOne({
+      where: {},
       relations: ['artists', 'albums', 'tracks'],
     });
-    return favs[0];
+    if(!favs) {
+      favs = this.favRepo.create({
+        artists: [],
+        albums: [],
+        tracks: []
+      });
+      await this.favRepo.save(favs);
+
+      favs = await this.favRepo.findOne({
+        where: {},
+        relations: ['artists', 'albums', 'tracks'],
+      });
+    }
+    return favs!;
   }
 
   async addTrackToFavorites(id: string) {
