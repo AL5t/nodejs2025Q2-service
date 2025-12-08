@@ -1,0 +1,4 @@
+FROM postgres:18-alpine
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s \
+  CMD pg_isready -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-postgres}" || exit 1

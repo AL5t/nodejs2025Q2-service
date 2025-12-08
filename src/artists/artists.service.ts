@@ -1,21 +1,26 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Artist } from './artistsInterface';
-import { v4, validate } from 'uuid';
+import { Artist } from './artists.entity';
+import { validate } from 'uuid';
 import { CreateArtistDto, UpdateArtistDto } from './dto/artists.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AlbumService } from 'src/albums/albums.service';
 import { TracksService } from 'src/tracks/tracks.service';
 
 @Injectable()
 export class ArtistService {
-  private artists: Artist[] = [];
-
   constructor(
+    @InjectRepository(Artist) private artistRepo: Repository<Artist>,
+    @Inject(forwardRef(() => AlbumService))
     private readonly albumService: AlbumService,
-    private readonly trackService: TracksService,
+    @Inject(forwardRef(() => TracksService))
+    private readonly tracksService: TracksService,
   ) {}
 
   private validateUUID(id: string) {
@@ -24,14 +29,14 @@ export class ArtistService {
     }
   }
 
-  getAllArtists(): Artist[] {
-    return this.artists;
+  getAllArtists() {
+    return this.artistRepo.find();
   }
 
-  getArtistById(id: string): Artist {
+  async getArtistById(id: string) {
     this.validateUUID(id);
 
-    const foundArtist = this.artists.find((artist) => artist.id === id);
+    const foundArtist = await this.artistRepo.findOneBy({ id });
 
     if (!foundArtist) {
       throw new NotFoundException('Not found artist');
@@ -40,7 +45,7 @@ export class ArtistService {
     return foundArtist;
   }
 
-  createArtist(dto: CreateArtistDto): Artist {
+  createArtist(dto: CreateArtistDto) {
     if (
       !dto.name ||
       typeof dto.name !== 'string' ||
@@ -49,21 +54,13 @@ export class ArtistService {
       throw new BadRequestException('Required name or grammy missing');
     }
 
-    const newArtist = {
-      id: v4(),
-      name: dto.name,
-      grammy: dto.grammy,
-    };
-
-    this.artists.push(newArtist);
-
-    return newArtist;
+    return this.artistRepo.save(dto);
   }
 
-  updateArtist(id: string, dto: UpdateArtistDto): Artist {
+  async updateArtist(id: string, dto: UpdateArtistDto) {
     this.validateUUID(id);
 
-    const foundArtist = this.artists.find((artist) => artist.id === id);
+    const foundArtist = await this.artistRepo.findOneBy({ id });
 
     if (!foundArtist) {
       throw new NotFoundException('Not found artist');
@@ -77,23 +74,20 @@ export class ArtistService {
       foundArtist.grammy = dto.grammy;
     }
 
-    return foundArtist;
+    return this.artistRepo.save(foundArtist);
   }
 
-  deleteArtist(id: string): void {
+  async deleteArtist(id: string) {
     this.validateUUID(id);
 
-    const foundArtistIndex = this.artists.findIndex(
-      (artist) => artist.id === id,
-    );
+    const foundArtist = await this.artistRepo.findOneBy({ id });
 
-    if (foundArtistIndex === -1) {
+    if (!foundArtist) {
       throw new NotFoundException('Not found artist');
     }
 
-    this.artists.splice(foundArtistIndex, 1);
-
-    this.albumService.deleteArtistFromAlbums(id);
-    this.trackService.deleteArtistFromTracks(id);
+    await this.albumService.deleteArtistFromAlbums(id);
+    await this.tracksService.deleteArtistFromTracks(id);
+    await this.artistRepo.remove(foundArtist);
   }
 }

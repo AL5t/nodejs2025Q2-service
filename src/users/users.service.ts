@@ -1,16 +1,18 @@
-import { v4, validate } from 'uuid';
+import { validate } from 'uuid';
 import { CreateUserDto, UpdatePasswordDto } from './dto/users.dto';
-import { User } from './userInterface';
+import { User } from './user.entity';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [];
+  constructor(@InjectRepository(User) private usersRepo: Repository<User>) {}
 
   private validateUUID(id: string) {
     if (!validate(id)) {
@@ -18,8 +20,9 @@ export class UserService {
     }
   }
 
-  getAllUsers(): Omit<User, 'password'>[] {
-    return this.users.map(({ id, login, version, createdAt, updatedAt }) => ({
+  async getAllUsers() {
+    const users = await this.usersRepo.find();
+    return users.map(({ id, login, version, createdAt, updatedAt }) => ({
       id,
       login,
       version,
@@ -28,9 +31,12 @@ export class UserService {
     }));
   }
 
-  getUserById(id: string): Omit<User, 'password'> {
+  async getUserById(id: string) {
     this.validateUUID(id);
-    const foundUser = this.users.find((user) => user.id === id);
+    const foundUser = await this.usersRepo.findOne({
+      where: { id },
+      relations: [],
+    });
     if (!foundUser) {
       throw new NotFoundException('User not found');
     }
@@ -44,7 +50,7 @@ export class UserService {
     };
   }
 
-  createUser(dto: CreateUserDto): Omit<User, 'password'> {
+  async createUser(dto: CreateUserDto) {
     if (
       !dto.login ||
       !dto.password ||
@@ -54,18 +60,19 @@ export class UserService {
       throw new BadRequestException('Required login or password missing');
     }
 
-    const dateNow = Date.now();
-
-    const newUser = {
-      id: v4(),
+    const newUser = this.usersRepo.create({
       login: dto.login,
       password: dto.password,
-      version: 1,
-      createdAt: dateNow,
-      updatedAt: dateNow,
-    };
+    });
 
-    this.users.push(newUser);
+    try {
+      await this.usersRepo.save(newUser);
+    } catch (e) {
+      if (e.code === '23505') {
+        throw new BadRequestException('Login already existss');
+      }
+      throw e;
+    }
 
     return {
       id: newUser.id,
@@ -76,10 +83,10 @@ export class UserService {
     };
   }
 
-  updateUser(id: string, dto: UpdatePasswordDto): Omit<User, 'password'> {
+  async updateUser(id: string, dto: UpdatePasswordDto) {
     this.validateUUID(id);
 
-    const foundUser = this.users.find((user) => user.id === id);
+    const foundUser = await this.usersRepo.findOneBy({ id });
 
     if (!foundUser) {
       throw new NotFoundException('User not found');
@@ -90,8 +97,7 @@ export class UserService {
     }
 
     foundUser.password = dto.newPassword;
-    foundUser.version++;
-    foundUser.updatedAt = Date.now();
+    await this.usersRepo.save(foundUser);
 
     return {
       id: foundUser.id,
@@ -102,13 +108,12 @@ export class UserService {
     };
   }
 
-  deleteUser(id: string) {
+  async deleteUser(id: string) {
     this.validateUUID(id);
 
-    const deletedUserIndex = this.users.findIndex((user) => user.id === id);
-    if (deletedUserIndex === -1) {
+    const deletedUser = this.usersRepo.delete(id);
+    if ((await deletedUser).affected === 0) {
       throw new NotFoundException('User not found');
     }
-    this.users.splice(deletedUserIndex, 1);
   }
 }

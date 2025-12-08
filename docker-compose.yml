@@ -4,46 +4,38 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-    image: oals/home-library-service-image
-    container_name: home_library_service_cont
     restart: unless-stopped
     depends_on:
       - db
-    volumes:
-      - ./src:/app/src
-      - ./logs:/app/logs
-      - logs:/app/logs
+    env_file:
+      - .env
     ports:
       - "${PORT}:${PORT}"
+    volumes:
+      - logs:/app/logs
     networks:
-      - home_network
-
+      - hls_network
 
   db:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     image: postgres:18-alpine
-    container_name: home_library_service_db
     restart: unless-stopped
-    environment: 
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env
     volumes:
-      - db_hls_data: /var/lib/postgresql/data
-    ports:
-      - "${POSTGRES_PORT}:5432"
+      - db_data:/var/lib/postgresql/data
     networks:
-      - home_network
+      - hls_network
 
 volumes:
   db_data:
     name: home_library_service_data
-  db_logs:
-    name: home_library_service_db_logs
   logs:
     name: home_library_service_logs
 
 networks:
-  home_network:
+  hls_network:
     driver: bridge
-    name: hls_network
 

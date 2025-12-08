@@ -4,24 +4,25 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { Favorites } from './favoritesInterface';
-import { ArtistService } from 'src/artists/artists.service';
-import { AlbumService } from 'src/albums/albums.service';
-import { TracksService } from 'src/tracks/tracks.service';
 import { validate } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Artist } from 'src/artists/artists.entity';
+import { Repository } from 'typeorm';
+import { Album } from 'src/albums/albums.entity';
+import { Track } from 'src/tracks/track.entity';
+import { Favorites } from './favorites.entity';
 
 @Injectable()
 export class FavoritesService {
-  private favorites: Favorites = {
-    artists: [],
-    albums: [],
-    tracks: [],
-  };
-
   constructor(
-    private readonly artistService: ArtistService,
-    private readonly albumService: AlbumService,
-    private readonly trackService: TracksService,
+    @InjectRepository(Favorites)
+    private readonly favRepo: Repository<Favorites>,
+    @InjectRepository(Artist)
+    private readonly artistRepo: Repository<Artist>,
+    @InjectRepository(Album)
+    private readonly albumRepo: Repository<Album>,
+    @InjectRepository(Track)
+    private readonly trackRepo: Repository<Track>,
   ) {}
 
   private validateUUID(id: string) {
@@ -30,122 +31,109 @@ export class FavoritesService {
     }
   }
 
-  getAllFavorites() {
-    return {
-      artists: this.favorites.artists
-        ?.map((id) => {
-          try {
-            return this.artistService.getArtistById(id);
-          } catch (error) {
-            return null;
-          }
-        })
-        .filter(Boolean),
-      albums: this.favorites.albums
-        ?.map((id) => {
-          try {
-            return this.albumService.getAlbumById(id);
-          } catch (error) {
-            return null;
-          }
-        })
-        .filter(Boolean),
-      tracks: this.favorites.tracks
-        ?.map((id) => {
-          try {
-            return this.trackService.getTrackById(id);
-          } catch (error) {
-            return null;
-          }
-        })
-        .filter(Boolean),
-    };
+  async getAllFavorites() {
+    const favs = await this.favRepo.find({
+      relations: ['artists', 'albums', 'tracks'],
+    });
+    return favs[0];
   }
 
-  addTrackToFavorites(id: string) {
+  async addTrackToFavorites(id: string) {
     this.validateUUID(id);
 
     let foundTrack;
     try {
-      foundTrack = this.trackService.getTrackById(id);
+      foundTrack = await this.trackRepo.findOneBy({ id });
+      if (!foundTrack) {
+        throw new UnprocessableEntityException('Track not found');
+      }
     } catch (error) {
       throw new UnprocessableEntityException('Track not found');
     }
 
-    if (!this.favorites.tracks.includes(id)) {
-      this.favorites.tracks.push(id);
-    }
-
-    return foundTrack;
+    const favs = await this.getAllFavorites();
+    favs.tracks.push(foundTrack);
+    await this.favRepo.save(favs);
   }
 
-  deleteTrackFromFavorites(id: string) {
+  async deleteTrackFromFavorites(id: string) {
     this.validateUUID(id);
 
-    if (!this.favorites.tracks.includes(id)) {
+    const favs = await this.getAllFavorites();
+    const prevLength = favs.tracks.length;
+
+    favs.tracks = favs.tracks.filter((t) => t.id !== id);
+
+    if (favs.tracks.length === prevLength) {
       throw new NotFoundException('Not found track in favorites');
     }
 
-    this.favorites.tracks = this.favorites.tracks.filter(
-      (trackId) => trackId !== id,
-    );
+    await this.favRepo.save(favs);
   }
 
-  addAlbumToFavorites(id: string) {
+  async addAlbumToFavorites(id: string) {
     this.validateUUID(id);
 
     let foundAlbum;
     try {
-      foundAlbum = this.albumService.getAlbumById(id);
+      foundAlbum = await this.albumRepo.findOneBy({ id });
+      if (!foundAlbum) {
+        throw new UnprocessableEntityException('Album not found');
+      }
     } catch (error) {
       throw new UnprocessableEntityException('Album not found');
     }
 
-    if (!this.favorites.albums.includes(id)) {
-      this.favorites.albums.push(id);
-    }
-
-    return foundAlbum;
+    const favs = await this.getAllFavorites();
+    favs.albums.push(foundAlbum);
+    await this.favRepo.save(favs);
   }
 
-  deleteAlbumFromFavorites(id: string) {
+  async deleteAlbumFromFavorites(id: string) {
     this.validateUUID(id);
 
-    if (!this.favorites.albums.includes(id)) {
+    const favs = await this.getAllFavorites();
+    const prevLength = favs.albums.length;
+
+    favs.albums = favs.albums.filter((alb) => alb.id !== id);
+
+    if (favs.albums.length === prevLength) {
       throw new NotFoundException('Not found album in favorites');
     }
 
-    this.favorites.albums = this.favorites.albums.filter(
-      (albumId) => albumId !== id,
-    );
+    await this.favRepo.save(favs);
   }
 
-  addArtistToFavorites(id: string) {
+  async addArtistToFavorites(id: string) {
     this.validateUUID(id);
 
     let foundArtist;
     try {
-      foundArtist = this.artistService.getArtistById(id);
+      foundArtist = await this.artistRepo.findOneBy({ id });
+      if (!foundArtist) {
+        throw new UnprocessableEntityException('Artist not found');
+      }
     } catch (error) {
       throw new UnprocessableEntityException('Artist not found');
     }
 
-    if (!this.favorites.artists.includes(id)) {
-      this.favorites.artists.push(id);
-    }
-
-    return foundArtist;
+    const favs = await this.getAllFavorites();
+    favs.artists.push(foundArtist);
+    await this.favRepo.save(favs);
   }
 
-  deleteArtistFromFavorites(id: string) {
+  async deleteArtistFromFavorites(id: string) {
     this.validateUUID(id);
 
-    if (!this.favorites.artists.includes(id)) {
+    const favs = await this.getAllFavorites();
+    const prevLength = favs.artists.length;
+
+    favs.artists = favs.artists.filter((art) => art.id !== id);
+
+    if (favs.artists.length === prevLength) {
       throw new NotFoundException('Not found artist in favorites');
     }
 
-    this.favorites.artists = this.favorites.artists.filter(
-      (artistId) => artistId !== id,
-    );
+    await this.favRepo.save(favs);
   }
 }

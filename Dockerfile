@@ -1,14 +1,19 @@
-FROM node:24.10-alpine AS builder
+FROM node:25-alpine AS deps
 WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+FROM node:25-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm ci --production=false
 RUN npm run build
 
-FROM node:24.10-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
-COPY packeage*.json ./
-RUN npm ci --production
-COPY --from=builder /app/dist ./dist
+
+COPY --from=builder /app ./
+
 EXPOSE 4000
 
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s \
