@@ -36,11 +36,11 @@ export class FavoritesService {
       where: {},
       relations: ['artists', 'albums', 'tracks'],
     });
-    if(!favs) {
+    if (!favs) {
       favs = this.favRepo.create({
         artists: [],
         albums: [],
-        tracks: []
+        tracks: [],
       });
       await this.favRepo.save(favs);
 

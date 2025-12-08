@@ -1,6 +1,12 @@
 import { Album } from 'src/albums/albums.entity';
 import { Artist } from 'src/artists/artists.entity';
-import { Column, Entity, PrimaryGeneratedColumn, ManyToMany, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 
 @Entity({ name: 'tracks' })
 export class Track {
@@ -15,7 +21,7 @@ export class Track {
 
   @Column({ type: 'uuid', nullable: true })
   artistId: string | null;
-  
+
   @Column({ type: 'uuid', nullable: true })
   albumId: string | null;
 
@@ -23,13 +29,13 @@ export class Track {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @JoinColumn({name: 'artistId'})
+  @JoinColumn({ name: 'artistId' })
   artist: Artist | null;
 
   @ManyToOne(() => Album, (album) => album.tracks, {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @JoinColumn({name: 'albumId'})
+  @JoinColumn({ name: 'albumId' })
   album: Album | null;
 }

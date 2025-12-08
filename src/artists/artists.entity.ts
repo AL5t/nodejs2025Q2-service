@@ -9,7 +9,7 @@ export class Artist {
 
   @Column()
   name: string;
-  
+
   @Column({ default: false })
   grammy: boolean;
 

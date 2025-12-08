@@ -4,7 +4,6 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -28,7 +27,7 @@ export class Album {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @JoinColumn({name: 'artistId'})
+  @JoinColumn({ name: 'artistId' })
   artist: Artist | null;
 
   @OneToMany(() => Track, (track) => track.album)
