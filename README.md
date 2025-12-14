@@ -34,12 +34,8 @@ docker compose up -d
 
 ## Testing
 
-After application running open new terminal and enter:
-
-To run all tests without authorization
-
 ```
-docker exec -it nodejs2025q2-service-app-1 npm run test
+docker exec -it nodejs2025q2-service-app-1 npm run test:auth
 ```
 
 ### Auto-fix and format

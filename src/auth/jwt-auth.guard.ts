@@ -20,7 +20,8 @@ export class JwtAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const path = request.path || request.url;
+    const path =
+      request.path || request.url || request.raw?.url || request.route?.path;
 
     const isPublic = paths.some(
       (p) =>
@@ -36,11 +37,11 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Authorization header not found');
     }
 
-    if (!auth.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Authorization header malformed');
-    }
+    // if (!auth.startsWith('Bearer ')) {
+    //   throw new UnauthorizedException('Authorization header malformed');
+    // }
 
-    const token = auth.slice(7).trim();
+    const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : auth;
 
     try {
       const payload = this.jwtService.verify(token, {
