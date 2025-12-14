@@ -50,6 +50,24 @@ export class UserService {
     };
   }
 
+  async getUserByLogin(login: string) {
+    const foundUser = await this.usersRepo.findOne({
+      where: { login },
+    });
+    if (!foundUser) {
+      return null;
+    }
+
+    return {
+      id: foundUser.id,
+      login: foundUser.login,
+      password: foundUser.password,
+      version: foundUser.version,
+      createdAt: Number(foundUser.createdAt),
+      updatedAt: Number(foundUser.updatedAt),
+    };
+  }
+
   async createUser(dto: CreateUserDto) {
     if (
       !dto.login ||
